@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sportello Amico: pass disabili</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="vendor/jspdf.umd.min.js" defer></script>
+  <script src="vendor/heic2any.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header>
+    <a class="brand" href="#home"><span class="avatar-sm" aria-hidden="true">🧑‍💼</span>
+      <span>Sportello Amico<small>Pass disabili · Comune di Milano · prototipo</small></span>
+    </a>
+    <div class="tools">
+      <span id="who" class="who" hidden></span>
+      <button id="btn-voice" type="button" aria-pressed="false">🔊 Parla ad alta voce</button>
+      <button id="btn-size" type="button" aria-pressed="false">A+ Testo grande</button>
+      <button id="btn-wipe" type="button" class="danger" hidden>🗑️ Cancella tutto</button>
+      <button id="btn-logout" type="button" class="danger" hidden>Esci</button>
+    </div>
+  </header>
+  <div id="mock-banner" class="mock-banner" hidden>Modalità dimostrazione senza AI: risposte preimpostate. Con una chiave API il controllo lo fa Claude.</div>
+
+  <!-- ============================== HOME: practical information ============================== -->
+  <main id="view-home" class="view home" tabindex="-1">
+    <section class="hero">
+      <div class="hero-text">
+        <p class="kicker">Pass per la sosta e la circolazione delle persone con disabilità (CUDE)</p>
+        <h1>Il pass disabili, preparato insieme a te</h1>
+        <p class="lead">Lo Sportello Amico ti spiega cosa serve, controlla i documenti e ti accompagna nel modulo del Comune, una schermata alla volta.</p>
+        <div class="hero-cta">
+          <a class="cta" href="#accesso">Inizia con lo Sportello Amico ▶</a>
+          <a class="cta ghost" href="#info">Leggi prima le informazioni</a>
+        </div>
+        <p class="small">Ci vogliono circa 15 minuti. Puoi fermarti e cancellare tutto quando vuoi.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="mini-envelope"><span>📨</span><span class="mini-stamp">VA BENE</span></div>
+      </div>
+    </section>
+
+    <section id="info" class="info-grid" aria-label="Informazioni pratiche">
+      <article class="info">
+        <h2>🚗 Cosa permette</h2>
+        <ul>
+          <li>Parcheggiare negli <strong>spazi per persone con disabilità</strong></li>
+          <li>Sosta <strong>gratuita sulle strisce gialle e blu</strong> a Milano</li>
+          <li>Entrare in <strong>Area B, Area C, ZTL</strong> e corsie riservate</li>
+          <li>Chiedere un <strong>posto auto personale</strong> vicino a casa o al lavoro</li>
+          <li>Vale in <strong>tutta l'Unione Europea</strong></li>
+        </ul>
+      </article>
+      <article class="info">
+        <h2>👥 Chi può fare la domanda</h2>
+        <ul>
+          <li>La persona con disabilità</li>
+          <li>Il genitore di un figlio minorenne</li>
+          <li>Un familiare o amico, <strong>con delega firmata</strong></li>
+          <li>Il tutore o l'amministratore di sostegno, con il decreto di nomina</li>
+        </ul>
+        <p class="small">Per entrare nel modulo online serve <strong>SPID, CIE o eIDAS</strong> di chi fa la domanda.</p>
+      </article>
+      <article class="info">
+        <h2>📄 Cosa serve</h2>
+        <ul>
+          <li><strong>Verbale INPS</strong> con art. 381 DPR 495/1992 o status di non vedente: <strong>tutte le pagine</strong>, versione OMISSIS, in un unico PDF. In alternativa, il certificato ASL di deambulazione ridotta.</li>
+          <li><strong>Rinnovo</strong> di un pass permanente: certificato del medico di famiglia con una <strong>frase precisa</strong> (te la prepariamo noi).</li>
+          <li>Documento d'identità fronte e retro, <strong>fototessera a colori</strong></li>
+          <li>File in PDF, JPG o PNG, <strong>massimo 5 MB</strong></li>
+        </ul>
+      </article>
+      <article class="info">
+        <h2>⏱️ Tempi e durata</h2>
+        <ul>
+          <li>Il Comune risponde entro <strong>30 giorni</strong> (nel 2025, in media 30)</li>
+          <li>Il pass dura <strong>al massimo 5 anni</strong>, anche per invalidità permanenti</li>
+          <li>Arriva a casa con <strong>raccomandata</strong> o si ritira su appuntamento. La scelta <strong>non si cambia dopo</strong>.</li>
+        </ul>
+      </article>
+      <article class="info">
+        <h2>📍 Ufficio e contatti</h2>
+        <p><strong>Unità Gestione Permessi</strong><br>Via Sile 8, Milano (Municipio 4)</p>
+        <p>Lunedì–venerdì · 10:00–12:00 e 13:30–15:00<br><strong>Solo su appuntamento</strong></p>
+        <p>🚇 M3 Brenta o Corvetto · 🚌 77, 84, 93, 95</p>
+        <p>📞 02 884 52909<br>✉️ MTA.Uffdisabili@comune.milano.it<br>☎️ Centralino 020202</p>
+      </article>
+      <article class="info">
+        <h2>🔀 Casi diversi</h2>
+        <ul>
+          <li><strong>Aspetti la visita INPS</strong> e il pass scade? <a href="https://servizicrm.comune.milano.it/callasap/richiestaappuntamento/passprovvisorioinattesadivisitaINPS" target="_blank" rel="noopener">Proroga di 6 mesi</a>: prenoti una telefonata.</li>
+          <li><strong>Pass perso o rubato?</strong> <a href="http://servizicrm.comune.milano.it/callasap/serviziperladisabilita/richiestaappuntamento" target="_blank" rel="noopener">Duplicato</a>: prenoti una telefonata.</li>
+          <li><strong>Non confondere</strong> il pass con la <strong>Carta Europea della Disabilità</strong>: quella si chiede all'INPS e dà sconti e agevolazioni, non serve per l'auto.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="promise">
+      <h2>🔒 Le nostre promesse</h2>
+      <div class="promise-row">
+        <p><strong>Guardiamo i documenti solo per controllarli.</strong> Documento d'identità, foto e delega restano sul tuo dispositivo.</p>
+        <p><strong>Non inviamo niente al Comune.</strong> La domanda la invii tu, sul sito ufficiale.</p>
+        <p><strong>Non conserviamo niente.</strong> Alla fine premi "Cancella tutto".</p>
+        <p><strong>Non decidiamo noi.</strong> Decide l'ufficio del Comune: noi controlliamo che la domanda sia completa.</p>
+      </div>
+      <div class="hero-cta"><a class="cta" href="#accesso">Inizia con lo Sportello Amico ▶</a></div>
+    </section>
+
+    <footer class="sources">
+      <p><strong>Fonti ufficiali:</strong>
+        <a href="https://www.comune.milano.it/servizi/mobilita/pass-per-la-sosta-e-la-circolazione-di-persone-con-disabilita" target="_blank" rel="noopener">pagina del servizio</a> ·
+        <a href="https://formshd.comune.milano.it/rwe2/module_preview.jsp?MODULE_TAG=PASS_DISABILI" target="_blank" rel="noopener">modulo online CUDE</a> ·
+        <a href="https://www.comune.milano.it/amministrazione/amministrazione-trasparente/attivita-e-procedimenti/tipologie-di-procedimento" target="_blank" rel="noopener">tempi del procedimento</a> ·
+        <a href="https://www.disabilita.governo.it/it/contrassegno-unico-disabili-europeo-cude/" target="_blank" rel="noopener">CUDE su disabilita.governo.it</a></p>
+      <p class="small">Prototipo realizzato al Claude Impact Lab Milano, 3 ottobre 2026. Non è un servizio ufficiale del Comune di Milano.</p>
+    </footer>
+  </main>
+
+  <!-- ============================== SIMULATED LOGIN ============================== -->
+  <main id="view-login" class="view login" tabindex="-1" hidden>
+    <div class="login-box">
+      <p class="sim-badge">ACCESSO SIMULATO · SOLO DIMOSTRAZIONE</p>
+      <h1>Entra con la tua identità digitale</h1>
+      <p>Nel servizio vero si entra con <strong>SPID, CIE o eIDAS</strong>, sul sito del proprio gestore. Qui, per la demo, scegli una persona di esempio: <strong>nessun dato reale, nessuna password</strong>.</p>
+      <div class="personas">
+        <button class="persona" data-user="lucia"><span class="p-face">👩‍🦱</span><span><strong>Lucia Verdi</strong><small>58 anni · fa la domanda per la mamma Anna, 84 anni</small></span></button>
+        <button class="persona" data-user="giorgio"><span class="p-face">👴</span><span><strong>Giorgio Bianchi</strong><small>71 anni · rinnova il suo pass permanente</small></span></button>
+        <button class="persona" data-user="samira"><span class="p-face">👩</span><span><strong>Samira El Amrani</strong><small>40 anni · amministratrice di sostegno del fratello</small></span></button>
+      </div>
+      <p class="small">Tutti i nomi sono inventati. <a href="#home">← Torna alle informazioni</a></p>
+    </div>
+  </main>
+
+  <!-- ============================== THE COUNTER ============================== -->
+  <div id="view-sportello" class="view room" hidden>
+    <section class="counter" aria-label="Conversazione con lo Sportello Amico">
+      <div id="chat" class="chat" role="log" aria-live="polite"></div>
+      <div class="answers">
+        <div id="chips" class="chips"></div>
+        <div class="mic-row">
+          <button id="mic" class="mic" type="button" aria-label="Rispondi a voce">🎤</button>
+          <span id="mic-hint" class="mic-hint">Puoi toccare un pulsante oppure rispondere a voce.</span>
+        </div>
+      </div>
+    </section>
+    <section id="table" class="table" aria-label="Il tavolo con la busta dei documenti"></section>
+  </div>
+
+  <input type="file" id="picker" hidden>
+  <dialog id="sheet"><div class="sheet-head"><strong id="sheet-title"></strong><button type="button" id="sheet-close">Chiudi</button></div>
+    <div class="sheet-body" id="sheet-body"></div></dialog>
+</body>
+</html>
