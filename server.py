@@ -24,6 +24,7 @@ from pathlib import Path
 
 import anthropic
 
+import nearby
 from rules import PHRASE_R6, RULES, rules_for, rules_text
 
 ROOT = Path(__file__).parent
@@ -295,6 +296,9 @@ class Handler(SimpleHTTPRequestHandler):
             body = json.loads(self.rfile.read(length))
         except json.JSONDecodeError:
             return self._json({"errore": "Richiesta non valida."}, HTTPStatus.BAD_REQUEST)
+        if self.path == "/api/nearby":  # local open data lookup: no AI, never logged, never forwarded
+            address = str(body.get("address", ""))[:120]
+            return self._json(nearby.nearby(address) if address.strip() else {"found": False})
         routes = {"/api/check-medical": (check_medical, mock_medical),
                   "/api/check-summary": (check_summary, mock_summary)}
         if self.path not in routes:

@@ -37,7 +37,8 @@ The people applying are often older, have reduced mobility, or are family member
    - The clerk explains in plain Italian what to do next, prepares the **delegation form** ready to sign, and the **letter for the GP** with the exact wording.
 3. **"Accompagnami nel modulo".** A replica of each real Comune screen, with the field to tap highlighted and the value to choose, based on the person's answers.
 4. **"Prova generale" (dress rehearsal).** Before pressing *Inoltra*, the person shows a screenshot of the Riepilogo. Claude compares it with their situation and stamps the problems.
-5. **Office sheet** for Paolo: checks done, rules and official sources, no personal data, plus a JSON export.
+5. **Offices near home** (in the chat and on the home page): the person types their address. It is matched locally against **65,218 street numbers** (`ds634`), which confirms the address for registered-mail delivery and gives the municipio. The app then shows the pass office (via Sile 8, with distance and the booking link), the 2 nearest **registry offices** (`ds549`, for the ID card) and the **municipio** office (`ds1299`), each with a booking link.
+6. **Office sheet** for Paolo: checks done, rules and official sources, no personal data, plus a JSON export.
 
 ## Where does Claude work when someone uses this?
 | | |
@@ -55,6 +56,7 @@ The people applying are often older, have reduced mobility, or are family member
 - Official delegation forms (`mod-delega-3`, `mod-delega_agg-09-2024`)
 - *Tipologie di procedimento* (Direzione Mobilità): 30-day legal limit, 30-day average in 2025
 - disabilita.governo.it: what is national (CUDE, plate platform) and what is municipal
+- Open data (refresh with `python fetch_city_data.py`): `ds634` street numbers with coordinates, `ds549` registry offices, `ds1299` municipio offices
 
 ## How to run it
 ```bash

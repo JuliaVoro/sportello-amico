@@ -32,7 +32,7 @@ const TABS = ["Informativa Privacy", "Dati richiedente", "Dati intestatario del 
 
 let S;
 const fresh = () => ({
-  user: null, role: null, request: null, permanent: null, canGoOut: null, car: null, plate: "",
+  user: null, role: null, nearby: null, request: null, permanent: null, canGoOut: null, car: null, plate: "",
   files: {}, // slot -> {blob, name, url, note, status: scanning|ok|bad|warn, stamp, demo}
   medical: null, rehearsal: null, stage: "welcome", tab: 1, chips: [], mock: false,
 });
@@ -328,7 +328,49 @@ async function allDocs() {
   S.stage = "desk"; renderTable(all);
   await bot(all ? "<p>🎉 <strong>La busta è completa!</strong> Ho chiuso la busta con il sigillo.</p>"
     : "<p>La busta è quasi pronta. I fogli con il timbro rosso o giallo sono da sistemare: puoi toccarli quando vuoi.</p>");
-  askGoOut();
+  askAddress();
+}
+
+async function askAddress() {
+  const el = addMsg("bot", `<p>Dove abita ${S.role === "self" ? "lei" : "la persona con disabilità"}? Controllo che l'indirizzo esista negli archivi del Comune (serve per la raccomandata) e ti dico <strong>gli uffici più vicini</strong>.</p>
+    <div class="inline-input"><input id="addr" aria-label="Indirizzo di casa" autocomplete="off" placeholder="Es. via Padova 118"><button id="addr-ok">Cerca</button></div>
+    <p class="small">L'indirizzo resta sul nostro server: lo confrontiamo con i dati aperti del Comune, non lo mandiamo a nessuno.</p>`);
+  chips([{ label: "Salta questa domanda", soft: true, do: askGoOut }]);
+  const input = el.querySelector("#addr");
+  input.focus();
+  const go = async () => {
+    if (!input.value.trim()) return;
+    const text = input.value;
+    el.querySelector(".inline-input").innerHTML = `<strong>${esc(text)}</strong>`;
+    chips([]);
+    let r;
+    try { r = await post("/api/nearby", { address: text }); } catch (e) { r = { found: false }; }
+    if (!r.found) {
+      await bot(`<p>Non trovo <strong>${esc(text)}</strong> negli archivi del Comune di Milano. Controlla come è scritto, per esempio "viale Monza 120".</p>`);
+      return chips([{ label: "Riprova", do: askAddress }, { label: "Vado avanti", soft: true, do: askGoOut }]);
+    }
+    S.nearby = r; renderTable();
+    const a = r.address;
+    await bot(`<p>✅ Trovato: <strong>${esc(a.street)} ${esc(a.number)}</strong>, Municipio ${esc(a.municipio)} (${esc(a.nil)}).${a.exact ? "" : " Il numero civico esatto non c'è: ho preso il più vicino, controlla."}</p>`,
+      officesHtml(r));
+    askGoOut();
+  };
+  el.querySelector("#addr-ok").addEventListener("click", go);
+  input.addEventListener("keydown", (e) => e.key === "Enter" && go());
+}
+
+function officesHtml(r) {
+  const b = r.booking, po = r.pass_office;
+  const passBook = S.request === "rinnovo" ? b.pass_renewal : b.pass_new;
+  return `<div class="offices">
+    <div class="office main"><h3>🅿️ ${esc(po.name)}</h3><p><strong>${esc(po.address)}</strong>${po.km != null ? ` · ${po.km} km da casa` : ""}<br>${esc(po.hours)}<br>${esc(po.transport)} · 📞 ${esc(po.phone)}</p>
+      <p class="small">È l'unico ufficio per il pass disabili. Serve solo se non fai la domanda online o se scegli il ritiro di persona.</p>
+      <a class="chip" href="${passBook}" target="_blank" rel="noopener">📅 Prenota appuntamento pass${S.request === "rinnovo" ? " (rinnovo)" : ""}</a></div>
+    ${r.registry.slice(0, 2).map((o) => `<div class="office"><h3>🪪 ${esc(o.name)}</h3><p><strong>${esc(o.address)}</strong> · ${o.km} km<br>${esc(o.hours)}</p>
+      <p class="small">Per carta d'identità, certificati, residenza. ${esc((o.note || "").slice(0, 140))}</p>
+      <a class="chip soft" href="${b.id_card}" target="_blank" rel="noopener">📅 Prenota carta d'identità</a></div>`).join("")}
+    ${r.municipio ? `<div class="office"><h3>🏛️ ${esc(r.municipio.name)}</h3><p>${esc(r.municipio.address)} · ${r.municipio.km} km<br>📞 ${esc(r.municipio.phone)}<br>✉️ ${esc(r.municipio.email)}</p></div>` : ""}
+    <p class="small">Altri appuntamenti: <a href="${b.any_office}" target="_blank" rel="noopener">prenota in Comune</a> (serve SPID o CIE) · Fonte: ${esc(r.source)}</p></div>`;
 }
 
 async function askGoOut() {
@@ -451,7 +493,7 @@ async function finish() {
 
 // ===================================================================================== the table (right side)
 
-function renderTable(sealed = false) {
+function renderTable(sealed = S.stage !== "welcome" && slots().every((x) => S.files[x.id]?.status === "ok")) {
   const t = $("table");
   if (S.stage === "welcome") {
     t.innerHTML = `<h2>Il tuo tavolo</h2><p class="sub">Qui appariranno la busta e i documenti.</p>
@@ -469,9 +511,10 @@ function renderTable(sealed = false) {
     <div class="under">${S.medical?.serve_lettera_medico ? `<button class="chip" data-act="letter">🩺 Lettera per il medico</button>` : ""}
       ${S.role === "delegate" ? `<button class="chip" data-act="delega">📝 Delega da firmare</button>` : ""}
       ${S.stage !== "welcome" && S.canGoOut ? `<button class="chip" data-act="guide">🧭 Accompagnami nel modulo</button>` : ""}
+      ${S.nearby ? `<button class="chip" data-act="near">📍 Uffici vicino a casa</button>` : ""}
       ${S.medical ? `<button class="chip" data-act="office">📋 Scheda per l'ufficio</button>` : ""}</div>`;
   t.querySelectorAll(".doc").forEach((d) => d.addEventListener("click", () => openCard(d.dataset.slot)));
-  t.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => ({ letter: printDoctorLetter, delega: openDelegaSheet, guide: () => guide(S.tab || 1), office: openOfficeSheet })[b.dataset.act]()));
+  t.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => ({ letter: printDoctorLetter, delega: openDelegaSheet, guide: () => guide(S.tab || 1), office: openOfficeSheet, near: () => sheet("📍 Uffici vicino a casa", officesHtml(S.nearby)) })[b.dataset.act]()));
 }
 
 function card(s) {
@@ -771,6 +814,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("btn-logout").addEventListener("click", logout);
   document.querySelectorAll(".persona").forEach((b) => b.addEventListener("click", () => { S.user = b.dataset.user; location.hash = "sportello"; }));
   window.addEventListener("hashchange", route);
+  const homeFind = async () => {
+    const q = $("home-addr").value.trim();
+    if (!q) return;
+    $("home-offices").innerHTML = `<p>Cerco…</p>`;
+    let r;
+    try { r = await post("/api/nearby", { address: q }); } catch { r = { found: false }; }
+    $("home-offices").innerHTML = r.found
+      ? `<p>📍 <strong>${esc(r.address.street)} ${esc(r.address.number)}</strong> · Municipio ${esc(r.address.municipio)} (${esc(r.address.nil)})</p>${officesHtml(r)}`
+      : `<p>Non trovo questo indirizzo a Milano. Prova a scriverlo così: "via Padova 118".</p>`;
+  };
+  $("home-find").addEventListener("click", homeFind);
+  $("home-addr").addEventListener("keydown", (e) => e.key === "Enter" && homeFind());
   setupMic();
   try {
     const st = await (await fetch("/api/status")).json();
